@@ -9,14 +9,18 @@ import sys
 import gzip
 import os
 
+
 class Record(object):
     """Represents a record."""
 
-class Respondent(Record): 
+
+class Respondent(Record):
     """Represents a respondent."""
+
 
 class Pregnancy(Record):
     """Represents a pregnancy."""
+
 
 class Table(object):
     """Represents a table as a list of objects"""
@@ -27,7 +31,7 @@ class Table(object):
     def __len__(self):
         return len(self.records)
 
-    def ReadFile(self, data_dir, filename, fields, constructor, n=None):
+    def readfile(self, data_dir, filename, fields, constructor, n=None):
         """Reads a compressed data file builds one object per record.
 
         Args:
@@ -49,11 +53,11 @@ class Table(object):
         for i, line in enumerate(fp):
             if i == n:
                 break
-            record = self.MakeRecord(line, fields, constructor)
-            self.AddRecord(record)
+            record = self.make_record(line, fields, constructor)
+            self.add_record(record)
         fp.close()
 
-    def MakeRecord(self, line, fields, constructor):
+    def make_record(self, line, fields, constructor):
         """Scans a line and returns an object with the appropriate fields.
 
         Args:
@@ -82,7 +86,7 @@ class Table(object):
             setattr(obj, field, val)
         return obj
 
-    def AddRecord(self, record):
+    def add_record(self, record):
         """Adds a record to this table.
 
         Args:
@@ -90,7 +94,7 @@ class Table(object):
         """
         self.records.append(record)
 
-    def ExtendRecords(self, records):
+    def extend_records(self, records):
         """Adds records to this table.
 
         Args:
@@ -98,7 +102,7 @@ class Table(object):
         """
         self.records.extend(records)
 
-    def Recode(self):
+    def recode(self):
         """Child classes can override this to recode values."""
         pass
 
@@ -106,15 +110,15 @@ class Table(object):
 class Respondents(Table):
     """Represents the respondent table."""
 
-    def ReadRecords(self, data_dir='.', n=None):
-        filename = self.GetFilename()
-        self.ReadFile(data_dir, filename, self.GetFields(), Respondent, n)
-        self.Recode()
+    def read_records(self, data_dir='.', n=None):
+        filename = self.get_file_name()
+        self.readfile(data_dir, filename, self.get_fields(), Respondent, n)
+        self.recode()
 
-    def GetFilename(self):
+    def get_file_name(self):
         return '2002FemResp.dat.gz'
 
-    def GetFields(self):
+    def get_fields(self):
         """Returns a tuple specifying the fields to extract.
 
         The elements of the tuple are field, start, end, case.
@@ -127,18 +131,19 @@ class Respondents(Table):
             ('caseid', 1, 12, int),
             ]
 
+
 class Pregnancies(Table):
     """Contains survey data about a Pregnancy."""
 
-    def ReadRecords(self, data_dir='.', n=None):
-        filename = self.GetFilename()
-        self.ReadFile(data_dir, filename, self.GetFields(), Pregnancy, n)
-        self.Recode()
+    def read_records(self, data_dir='.', n=None):
+        filename = self.get_file_name()
+        self.readfile(data_dir, filename, self.get_fields(), Pregnancy, n)
+        self.recode()
 
-    def GetFilename(self):
+    def get_file_name(self):
         return '2002FemPreg.dat.gz'
 
-    def GetFields(self):
+    def get_fields(self):
         """Gets information about the fields to extract from the survey data.
 
         Documentation of the fields for Cycle 6 is at
@@ -160,7 +165,7 @@ class Pregnancies(Table):
             ('finalwgt', 423, 440, float),
             ]
 
-    def Recode(self):
+    def recode(self):
         for rec in self.records:
 
             # divide mother's age by 100
@@ -171,12 +176,12 @@ class Pregnancies(Table):
                 pass
 
             # convert weight at birth from lbs/oz to total ounces
-            # note: there are some very low birthweights
+            # note: there are some very low birth-weights
             # that are almost certainly errors, but for now I am not
             # filtering
             try:
-                if (rec.birthwgt_lb != 'NA' and rec.birthwgt_lb < 20 and
-                    rec.birthwgt_oz != 'NA' and rec.birthwgt_oz <= 16):
+                if rec.birthwgt_lb != 'NA' and rec.birthwgt_lb < 20 and rec.birthwgt_oz != 'NA' and \
+                        rec.birthwgt_oz <= 16:
                     rec.totalwgt_oz = rec.birthwgt_lb * 16 + rec.birthwgt_oz
                 else:
                     rec.totalwgt_oz = 'NA'
@@ -186,11 +191,11 @@ class Pregnancies(Table):
 
 def main(name, data_dir='.'):
     resp = Respondents()
-    resp.ReadRecords(data_dir)
+    resp.read_records(data_dir)
     print 'Number of respondents', len(resp.records)
 
     preg = Pregnancies()
-    preg.ReadRecords(data_dir)
+    preg.read_records(data_dir)
     print 'Number of pregnancies', len(preg.records)
 
     
